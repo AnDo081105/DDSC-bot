@@ -1,5 +1,7 @@
 import discord
 import os
+import asyncio
+from aiohttp import web
 from dotenv import load_dotenv
 from discord.ext import commands
 import logging
@@ -102,6 +104,26 @@ async def on_command_error(ctx, error):
     # if the bot does not have permissions to do something
     if isinstance(error, commands.BotMissingPermissions):
         await ctx.send("I don't have the required permissions to do that!")
-        
 
-bot.run(TOKEN, log_handler=handler, log_level=logging.DEBUG)
+
+# ---3. Health Check Server for Render---
+async def health_check(request):
+    return web.Response(text="OK", status=200)
+
+async def start_health_server():
+    app = web.Application()
+    app.router.add_get("/", health_check)
+    app.router.add_get("/health", health_check)
+    port = int(os.getenv("PORT", 10000))
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    print(f"Health check server running on port {port}")
+
+async def main():
+    await start_health_server()
+    await bot.start(TOKEN)
+
+if __name__ == "__main__":
+    asyncio.run(main())
