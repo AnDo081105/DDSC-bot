@@ -8,6 +8,7 @@ Discord bot for **Deakin Data Science Club**
 bot.py
 config.py
 main.py
+app.py (Temp)
 requirements.txt
 assets/
 cogs/
@@ -57,3 +58,5 @@ cogs/
 - `aiohttp` - Async HTTP client
 
 ## Deployment
+
+- Current: Render free tier app service | entry point: app.py
