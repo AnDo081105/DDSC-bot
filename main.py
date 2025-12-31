@@ -1,16 +1,12 @@
 import asyncio
 import discord
 from discord import app_commands
+import os
+from pathlib import Path
 from bot import create_bot
 from config import TOKEN
 
 bot = create_bot()
-
-# List of cogs to load
-COGS = [
-    "cogs.events",
-    "cogs.info",
-]
 
 
 @bot.event
@@ -28,12 +24,18 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
     else:
         await interaction.response.send_message(f"An error occurred: {error}", ephemeral=True)
 
+async def load_cogs():
+    """Automatically load all cogs from the cogs directory"""
+    cogs_path = os.path.join(os.path.dirname(__file__), 'cogs')
+    for filename in os.listdir(cogs_path):
+        if filename.endswith('.py') and not filename.startswith('_'):
+            cog_name = filename[:-3]  # Remove .py extension
+            await bot.load_extension(f'cogs.{cog_name}')
+            print(f'Loaded cog: {cog_name}')
 
 async def main():
     async with bot:
-        for cog in COGS:
-            await bot.load_extension(cog)
-            print(f"Loaded {cog}")
+        await load_cogs()
         await bot.start(TOKEN)
 
 
