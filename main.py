@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 import os
 import asyncio
 from aiohttp import web
@@ -22,7 +23,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
-
+bot.event_link = None
 
 # ---2. Events & Commands---
 
@@ -31,13 +32,42 @@ admin_roles = ["Discord Programmer", "Executive", "Committee", "Admin"]
 # test
 @bot.event
 async def on_ready():
+    await bot.tree.sync()  # Sync slash commands to Discord
     print(f'We have logged in as {bot.user}')
 
-# !signup
-@bot.command()
-@commands.has_any_role(*admin_roles)
-async def signup(ctx, channel: discord.TextChannel = None):
-    siggnup_message = [
+
+# /setevent
+@bot.tree.command(name="setevent", description="Set the event registration link (Admin only)")
+@app_commands.checks.has_any_role(*admin_roles)
+async def setevent(interaction: discord.Interaction, link: str):
+    bot.event_link = link
+    await interaction.response.send_message(f"Event registration link has been set to: {bot.event_link}")
+
+# /register
+@bot.tree.command(name="register", description="Get the event registration link via DM")
+async def register(interaction: discord.Interaction):
+    if bot.event_link is None:
+        await interaction.response.send_message("No event link has been set yet.", ephemeral=True)
+        return
+    event_link = bot.event_link
+    register_message = [
+        "# 📝 **Register for DDSC Events!**", 
+        "Thank you for joining our events, we are excited to have you on board!",
+        "# 📌 **Register Now!**",
+        f"[**Click here to register!**]({event_link})"
+    ]
+    try:
+        await interaction.user.send("\n".join(register_message))
+        await interaction.response.send_message("I've sent you the registration link via DM!", ephemeral=True)
+    except discord.Forbidden:
+        await interaction.response.send_message("I couldn't DM you. Please check your privacy settings.", ephemeral=True)
+
+# /signup
+@bot.tree.command(name="signup", description="Send the club signup message to a channel (Admin only)")
+@app_commands.checks.has_any_role(*admin_roles)
+@app_commands.describe(channel="The channel to send the signup message to (optional)")
+async def signup(interaction: discord.Interaction, channel: discord.TextChannel = None):
+    signup_message = [
         "# 👨‍💻 **Sign up for DDSC!!!**", 
         "If you haven't signed up to be a member of the **Deakin Data Science Club** yet, please do so by clicking the link below!",
         "## 🤔 **Why Sign Up?**",
@@ -46,19 +76,20 @@ async def signup(ctx, channel: discord.TextChannel = None):
         "- Enhance your skills and knowledge through our resources and community.",
         "# 📌 **Sign Up Now!**",
         "[**Click here to sign up!**](https://www.dusa.org.au/clubs/deakin-data-science-club-burwood-ddsc)"
-
     ]
 
-    
-    target = channel or ctx.channel  # Use mentioned channel or current
+    target = channel or interaction.channel
+    await target.send("\n".join(signup_message))
     if channel:
-        await ctx.send(f"Signup message sent to {channel.mention}")
-    await target.send("\n".join(siggnup_message))
+        await interaction.response.send_message(f"Signup message sent to {channel.mention}", ephemeral=True)
+    else:
+        await interaction.response.send_message("Signup message sent!", ephemeral=True)
 
-# !introduction 
-@bot.command()
-@commands.has_any_role(*admin_roles)
-async def introduction(ctx, channel: discord.TextChannel = None):
+# /introduction 
+@bot.tree.command(name="introduction", description="Send the club introduction message to a channel (Admin only)")
+@app_commands.checks.has_any_role(*admin_roles)
+@app_commands.describe(channel="The channel to send the introduction to (optional)")
+async def introduction(interaction: discord.Interaction, channel: discord.TextChannel = None):
     logo_path = os.path.join("assets", "DDSC_logo.jpg")
     logo_file = discord.File(logo_path, filename="DDSC_logo.jpg")  
     who_embed = discord.Embed(
@@ -85,26 +116,27 @@ async def introduction(ctx, channel: discord.TextChannel = None):
         color=discord.Color.blue()
     )
 
-    target = channel or ctx.channel  # Use mentioned channel or current
-    if channel:
-        await ctx.send(f"Introduction message sent to {channel.mention}")
+    target = channel or interaction.channel
     await target.send("# 👨‍💻 **Welcome to Deakin Data Science Club!!**")
     await target.send(embed=who_embed, file=logo_file)
     await target.send(embed=vision_embed)
     await target.send(embed=objectives_embed)
     await target.send(embed=introduction_link_embed)
+    
+    if channel:
+        await interaction.response.send_message(f"Introduction message sent to {channel.mention}", ephemeral=True)
+    else:
+        await interaction.response.send_message("Introduction message sent!", ephemeral=True)
 
     
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.MissingAnyRole):
-        await ctx.message.delete()
-        await ctx.send(f"Hey {ctx.author.mention}, you don't have the required role!", delete_after=10)
-    
-    # if the bot does not have permissions to do something
-    if isinstance(error, commands.BotMissingPermissions):
-        await ctx.send("I don't have the required permissions to do that!")
-
+@bot.tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingAnyRole):
+        await interaction.response.send_message("You don't have the required role to use this command!", ephemeral=True)
+    elif isinstance(error, app_commands.BotMissingPermissions):
+        await interaction.response.send_message("I don't have the required permissions to do that!", ephemeral=True)
+    else:
+        await interaction.response.send_message(f"An error occurred: {error}", ephemeral=True)
 
 # ---3. Health Check Server for Render---
 async def health_check(request):
