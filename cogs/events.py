@@ -19,7 +19,7 @@ class EventsCog(commands.Cog):
     @app_commands.command(name="register", description="Get the event registration link via DM")
     async def register(self, interaction: discord.Interaction):
         if self.bot.event_link is None:
-            await interaction.response.send_message("No event link has been set yet.", ephemeral=True, delete_after=300, delete_after=5)
+            await interaction.response.send_message("No event link has been set yet.", ephemeral=True, delete_after=5)
             return
         
         register_message = [
