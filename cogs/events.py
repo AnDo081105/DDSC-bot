@@ -30,9 +30,9 @@ class EventsCog(commands.Cog):
         ]
         try:
             await interaction.user.send("\n".join(register_message))
-            await interaction.response.send_message("I've sent you the registration link via DM!", ephemeral=True, delete_after=5)
+            await interaction.response.send_message("I've sent you the registration link via DM!", ephemeral=True)
         except discord.Forbidden:
-            await interaction.response.send_message("I couldn't DM you. Please check your privacy settings.", ephemeral=True, delete_after=5)
+            await interaction.response.send_message("I couldn't DM you. Please check your privacy settings.", ephemeral=True)
 
 
 async def setup(bot: commands.Bot):
