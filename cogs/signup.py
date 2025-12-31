@@ -5,7 +5,7 @@ from config import ADMIN_ROLES
 import os
 
 
-class InfoCog(commands.Cog):
+class SignupCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -34,4 +34,4 @@ class InfoCog(commands.Cog):
             await interaction.response.send_message("Signup message sent!", ephemeral=True)
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(InfoCog(bot))
+    await bot.add_cog(SignupCog(bot))
