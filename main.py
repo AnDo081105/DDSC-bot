@@ -25,7 +25,9 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
         await interaction.response.send_message(f"An error occurred: {error}", ephemeral=True)
 
 async def load_cogs():
-    """Automatically load all cogs from the cogs directory"""
+    """
+    Automatically load all cogs from the cogs directory
+    """
     cogs_path = os.path.join(os.path.dirname(__file__), 'cogs')
     for filename in os.listdir(cogs_path):
         if filename.endswith('.py') and not filename.startswith('_'):

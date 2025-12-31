@@ -29,9 +29,9 @@ class SignupCog(commands.Cog):
         await target.send("\n".join(signup_message))
         
         if channel:
-            await interaction.response.send_message(f"Signup message sent to {channel.mention}", ephemeral=True)
+            await interaction.response.send_message(f"Signup message sent to {channel.mention}", ephemeral=True, delete_after=300)
         else:
-            await interaction.response.send_message("Signup message sent!", ephemeral=True)
+            await interaction.response.send_message("Signup message sent!", ephemeral=True, delete_after=300)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(SignupCog(bot))
