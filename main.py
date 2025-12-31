@@ -6,6 +6,7 @@ from pathlib import Path
 from bot import create_bot
 from config import TOKEN
 
+# Create a single bot instance to be shared
 bot = create_bot()
 
 
@@ -24,6 +25,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
     else:
         await interaction.response.send_message(f"An error occurred: {error}", ephemeral=True)
 
+
 async def load_cogs():
     """
     Automatically load all cogs from the cogs directory
@@ -35,11 +37,15 @@ async def load_cogs():
             await bot.load_extension(f'cogs.{cog_name}')
             print(f'Loaded cog: {cog_name}')
 
-async def main():
+
+async def run_bot():
+    """Run the bot with cogs loaded - can be called from other entry points"""
     async with bot:
         await load_cogs()
         await bot.start(TOKEN)
 
 
+# Entry point for LOCAL development
 if __name__ == "__main__":
-    asyncio.run(main())
+    print("Starting bot locally...")
+    asyncio.run(run_bot())
