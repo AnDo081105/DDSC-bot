@@ -10,7 +10,6 @@ class EventsCog(commands.Cog):
 
     @app_commands.command(name="setevent", description="Set the event registration link (Admin only)")
     @app_commands.checks.has_any_role(*ADMIN_ROLES)
-    @app_commands.default_permissions(administrator=True)  # Only admins can see this
 
     async def setevent(self, interaction: discord.Interaction, link: str):
         self.bot.event_link = link

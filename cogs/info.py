@@ -11,7 +11,6 @@ class InfoCog(commands.Cog):
         
     @app_commands.command(name="introduction", description="Send the club introduction message to a channel (Admin only)")
     @app_commands.checks.has_any_role(*ADMIN_ROLES)
-    @app_commands.default_permissions(administrator=True)  # Only admins can see this
     @app_commands.describe(channel="The channel to send the introduction to (optional)")
     async def introduction(self, interaction: discord.Interaction, channel: discord.TextChannel = None):
         logo_path = os.path.join("assets", "DDSC_logo.jpg")
